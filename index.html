@@ -1,0 +1,1102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MusicFlow - Modern Music Player</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+        
+        * {
+            font-family: 'Inter', sans-serif;
+        }
+        
+        body {
+            background: #0a0a0a;
+            color: #ffffff;
+            overflow: hidden;
+        }
+        
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        
+        ::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.05);
+        }
+        
+        ::-webkit-scrollbar-thumb {
+            background: rgba(139, 92, 246, 0.5);
+            border-radius: 4px;
+        }
+        
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(139, 92, 246, 0.7);
+        }
+        
+        /* Glass effect */
+        .glass {
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        /* Gradient backgrounds */
+        .gradient-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        
+        /* Progress bar */
+        .progress-bar {
+            -webkit-appearance: none;
+            appearance: none;
+            background: transparent;
+            cursor: pointer;
+            width: 100%;
+        }
+        
+        .progress-bar::-webkit-slider-track {
+            background: rgba(255, 255, 255, 0.1);
+            height: 4px;
+            border-radius: 2px;
+        }
+        
+        .progress-bar::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            background: #8b5cf6;
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            margin-top: -5px;
+            transition: all 0.2s;
+            box-shadow: 0 0 10px rgba(139, 92, 246, 0.5);
+        }
+        
+        .progress-bar::-webkit-slider-thumb:hover {
+            transform: scale(1.2);
+            background: #a78bfa;
+        }
+        
+        /* Volume slider */
+        .volume-slider {
+            -webkit-appearance: none;
+            appearance: none;
+            background: transparent;
+            cursor: pointer;
+        }
+        
+        .volume-slider::-webkit-slider-track {
+            background: rgba(255, 255, 255, 0.1);
+            height: 3px;
+            border-radius: 2px;
+        }
+        
+        .volume-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            background: #8b5cf6;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-top: -4.5px;
+        }
+        
+        /* Song cards */
+        .song-card {
+            transition: all 0.3s ease;
+            position: relative;
+        }
+        
+        .song-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(139, 92, 246, 0.2);
+        }
+        
+        .song-card.active {
+            background: rgba(139, 92, 246, 0.1);
+            border: 1px solid rgba(139, 92, 246, 0.3);
+        }
+        
+        /* Upload area */
+        .upload-zone {
+            border: 2px dashed rgba(139, 92, 246, 0.5);
+            transition: all 0.3s ease;
+        }
+        
+        .upload-zone:hover {
+            border-color: #8b5cf6;
+            background: rgba(139, 92, 246, 0.05);
+        }
+        
+        .upload-zone.dragover {
+            border-color: #a78bfa;
+            background: rgba(139, 92, 246, 0.1);
+            transform: scale(1.02);
+        }
+        
+        /* Visualizer */
+        .visualizer {
+            display: flex;
+            align-items: flex-end;
+            justify-content: center;
+            height: 50px;
+            gap: 2px;
+            margin: 20px 0;
+        }
+        
+        .viz-bar {
+            width: 3px;
+            background: linear-gradient(to top, #8b5cf6, #a78bfa);
+            border-radius: 2px;
+            animation: dance 0.6s ease-in-out infinite alternate;
+        }
+        
+        @keyframes dance {
+            from { height: 5px; }
+            to { height: 30px; }
+        }
+        
+        /* Buttons */
+        .control-btn {
+            transition: all 0.2s ease;
+        }
+        
+        .control-btn:hover {
+            transform: scale(1.1);
+        }
+        
+        .control-btn:active {
+            transform: scale(0.95);
+        }
+        
+        /* Notification */
+        .notification {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            background: rgba(139, 92, 246, 0.9);
+            color: white;
+            padding: 16px 24px;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            transform: translateY(100px);
+            opacity: 0;
+            transition: all 0.3s ease;
+            z-index: 1000;
+            backdrop-filter: blur(10px);
+        }
+        
+        .notification.show {
+            transform: translateY(0);
+            opacity: 1;
+        }
+        
+        /* Animations */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .fade-in {
+            animation: fadeIn 0.5s ease-out;
+        }
+        
+        /* Glow effect */
+        .glow {
+            box-shadow: 0 0 20px rgba(139, 92, 246, 0.5);
+        }
+        
+        /* Heart animation */
+        @keyframes heartBeat {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.2); }
+            100% { transform: scale(1); }
+        }
+        
+        .heart-beat {
+            animation: heartBeat 0.3s ease-in-out;
+        }
+        
+        /* Share menu */
+        .share-menu {
+            position: absolute;
+            top: 100%;
+            right: 0;
+            background: rgba(30, 30, 30, 0.95);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            padding: 8px;
+            min-width: 200px;
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(-10px);
+            transition: all 0.2s ease;
+            z-index: 50;
+        }
+        
+        .share-menu.show {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0);
+        }
+        
+        .share-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 8px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        
+        .share-item:hover {
+            background: rgba(139, 92, 246, 0.2);
+        }
+        
+        /* Upload progress */
+        .upload-progress {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: rgba(139, 92, 246, 0.3);
+            border-radius: 0 0 8px 8px;
+            overflow: hidden;
+        }
+        
+        .upload-progress-bar {
+            height: 100%;
+            background: #8b5cf6;
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+    </style>
+</head>
+<body class="h-screen flex">
+    <!-- Background gradient -->
+    <div class="fixed inset-0 gradient-primary opacity-10"></div>
+    
+    <!-- Hidden audio element -->
+    <audio id="audioPlayer"></audio>
+    
+    <!-- Hidden file input -->
+    <input type="file" id="fileInput" accept="audio/*" multiple style="display: none;">
+    
+    <!-- Notification -->
+    <div id="notification" class="notification"></div>
+    
+    <!-- Main container -->
+    <div class="relative z-10 flex h-full w-full">
+        <!-- Sidebar -->
+        <aside class="w-64 glass p-6 flex flex-col">
+            <!-- Logo -->
+            <div class="mb-8">
+                <h1 class="text-2xl font-bold flex items-center gap-3">
+                    <div class="w-10 h-10 gradient-primary rounded-lg flex items-center justify-center">
+                        <i class="fas fa-music text-white"></i>
+                    </div>
+                    MusicFlow
+                </h1>
+            </div>
+            
+            <!-- Navigation -->
+            <nav class="flex-1">
+                <ul class="space-y-2">
+                    <li>
+                        <a href="#" class="nav-item flex items-center gap-3 p-3 rounded-lg hover:bg-white/10 transition-all" data-view="all">
+                            <i class="fas fa-home w-5 text-purple-400"></i>
+                            <span class="font-medium">Home</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#" class="nav-item flex items-center gap-3 p-3 rounded-lg hover:bg-white/10 transition-all" data-view="search">
+                            <i class="fas fa-search w-5 text-purple-400"></i>
+                            <span class="font-medium">Search</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#" class="nav-item flex items-center gap-3 p-3 rounded-lg hover:bg-white/10 transition-all" data-view="library">
+                            <i class="fas fa-list w-5 text-purple-400"></i>
+                            <span class="font-medium">Your Library</span>
+                        </a>
+                    </li>
+                </ul>
+                
+                <!-- Playlists -->
+                <div class="mt-8">
+                    <h3 class="text-xs uppercase text-gray-500 mb-3 font-semibold">Playlists</h3>
+                    <ul class="space-y-2">
+                        <li>
+                            <a href="#" class="nav-item flex items-center gap-3 p-3 rounded-lg hover:bg-white/10 transition-all" data-view="liked">
+                                <i class="fas fa-heart w-5 text-red-400"></i>
+                                <span class="font-medium">Liked Songs</span>
+                                <span id="likedCount" class="ml-auto text-xs text-gray-400">0</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="#" class="nav-item flex items-center gap-3 p-3 rounded-lg hover:bg-white/10 transition-all" data-view="recent">
+                                <i class="fas fa-clock w-5 text-green-400"></i>
+                                <span class="font-medium">Recently Played</span>
+                            </a>
+                        </li>
+                        <li>
+                            <button id="uploadBtn" class="w-full flex items-center gap-3 p-3 rounded-lg hover:bg-white/10 transition-all">
+                                <i class="fas fa-upload w-5 text-blue-400"></i>
+                                <span class="font-medium">Upload Music</span>
+                            </button>
+                        </li>
+                    </ul>
+                </div>
+            </nav>
+            
+            <!-- User profile -->
+            <div class="mt-auto p-3 glass rounded-xl flex items-center gap-3">
+                <img src="https://picsum.photos/seed/user/40/40" alt="User" class="w-10 h-10 rounded-full">
+                <div class="flex-1">
+                    <p class="font-medium text-sm">John Doe</p>
+                    <p class="text-xs text-gray-400">Premium</p>
+                </div>
+                <i class="fas fa-chevron-down text-gray-400"></i>
+            </div>
+        </aside>
+        
+        <!-- Main content -->
+        <main class="flex-1 flex flex-col">
+            <!-- Header -->
+            <header class="glass p-4 flex items-center justify-between">
+                <div class="flex items-center gap-4">
+                    <button class="w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center transition-all">
+                        <i class="fas fa-chevron-left"></i>
+                    </button>
+                    <button class="w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center transition-all">
+                        <i class="fas fa-chevron-right"></i>
+                    </button>
+                </div>
+                
+                <!-- Search -->
+                <div class="flex-1 max-w-xl mx-8">
+                    <div class="relative">
+                        <input type="text" placeholder="Search songs, artists, albums..." 
+                               class="w-full px-4 py-2 pl-12 bg-white/10 rounded-full focus:outline-none focus:bg-white/20 transition-all"
+                               id="searchInput">
+                        <i class="fas fa-search absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                    </div>
+                </div>
+                
+                <!-- Actions -->
+                <div class="flex items-center gap-4">
+                    <button class="text-gray-400 hover:text-white transition-all">
+                        <i class="fas fa-bell"></i>
+                    </button>
+                    <button class="text-gray-400 hover:text-white transition-all">
+                        <i class="fas fa-cog"></i>
+                    </button>
+                </div>
+            </header>
+            
+            <!-- Content area -->
+            <div class="flex-1 flex overflow-hidden">
+                <!-- Song list -->
+                <div class="flex-1 p-6 overflow-y-auto">
+                    <div class="flex justify-between items-center mb-6">
+                        <h2 id="sectionTitle" class="text-3xl font-bold">Your Music</h2>
+                        <button id="uploadHeaderBtn" class="px-6 py-2 gradient-primary rounded-full hover:opacity-90 transition-all font-medium">
+                            <i class="fas fa-plus mr-2"></i>Upload Music
+                        </button>
+                    </div>
+                    
+                    <!-- Upload zone -->
+                    <div id="uploadZone" class="upload-zone glass rounded-2xl p-12 text-center mb-8 cursor-pointer">
+                        <i class="fas fa-cloud-upload-alt text-5xl text-purple-400 mb-4"></i>
+                        <h3 class="text-xl font-semibold mb-2">Upload Your Music</h3>
+                        <p class="text-gray-400 mb-4">Drag and drop your audio files here or click to browse</p>
+                        <button class="px-6 py-2 gradient-primary rounded-full hover:opacity-90 transition-all font-medium">
+                            Select Files
+                        </button>
+                        <div class="upload-progress mt-4" id="uploadProgress" style="display: none;">
+                            <div class="upload-progress-bar" id="uploadProgressBar"></div>
+                        </div>
+                    </div>
+                    
+                    <!-- Song grid -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4" id="songGrid">
+                        <!-- Songs will be dynamically added here -->
+                    </div>
+                </div>
+                
+                <!-- Now playing panel -->
+                <div class="w-96 glass p-6 flex flex-col">
+                    <h3 class="text-lg font-semibold mb-4">Now Playing</h3>
+                    
+                    <!-- Album art -->
+                    <div class="relative mb-6">
+                        <img id="albumArt" src="https://picsum.photos/seed/album1/300/300" alt="Album" 
+                             class="w-full rounded-2xl shadow-2xl">
+                        <div class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent rounded-2xl"></div>
+                    </div>
+                    
+                    <!-- Song info -->
+                    <div class="text-center mb-6">
+                        <h4 id="songTitle" class="text-xl font-bold mb-1">Midnight Dreams</h4>
+                        <p id="artistName" class="text-gray-400">Luna Echo</p>
+                    </div>
+                    
+                    <!-- Visualizer -->
+                    <div class="visualizer" id="visualizer" style="display: none;">
+                        <div class="viz-bar" style="animation-delay: 0s;"></div>
+                        <div class="viz-bar" style="animation-delay: 0.1s;"></div>
+                        <div class="viz-bar" style="animation-delay: 0.2s;"></div>
+                        <div class="viz-bar" style="animation-delay: 0.3s;"></div>
+                        <div class="viz-bar" style="animation-delay: 0.4s;"></div>
+                        <div class="viz-bar" style="animation-delay: 0.5s;"></div>
+                        <div class="viz-bar" style="animation-delay: 0.6s;"></div>
+                        <div class="viz-bar" style="animation-delay: 0.7s;"></div>
+                        <div class="viz-bar" style="animation-delay: 0.8s;"></div>
+                        <div class="viz-bar" style="animation-delay: 0.9s;"></div>
+                    </div>
+                    
+                    <!-- Progress bar -->
+                    <div class="mb-6">
+                        <input type="range" class="progress-bar" id="progressBar" min="0" max="100" value="0">
+                        <div class="flex justify-between text-xs text-gray-400 mt-2">
+                            <span id="currentTime">0:00</span>
+                            <span id="duration">0:00</span>
+                        </div>
+                    </div>
+                    
+                    <!-- Controls -->
+                    <div class="flex items-center justify-center gap-6 mb-6">
+                        <button id="shuffleBtn" class="control-btn text-gray-400 hover:text-white transition-all">
+                            <i class="fas fa-random"></i>
+                        </button>
+                        <button id="prevBtn" class="control-btn text-white">
+                            <i class="fas fa-step-backward text-xl"></i>
+                        </button>
+                        <button id="playPauseBtn" class="control-btn w-16 h-16 rounded-full gradient-primary flex items-center justify-center glow">
+                            <i class="fas fa-play text-xl ml-1"></i>
+                        </button>
+                        <button id="nextBtn" class="control-btn text-white">
+                            <i class="fas fa-step-forward text-xl"></i>
+                        </button>
+                        <button id="repeatBtn" class="control-btn text-gray-400 hover:text-white transition-all">
+                            <i class="fas fa-redo"></i>
+                        </button>
+                    </div>
+                    
+                    <!-- Volume control -->
+                    <div class="flex items-center gap-3 mb-6">
+                        <i class="fas fa-volume-down text-gray-400"></i>
+                        <input type="range" class="volume-slider flex-1" id="volumeSlider" min="0" max="100" value="70">
+                        <i class="fas fa-volume-up text-gray-400"></i>
+                    </div>
+                    
+                    <!-- Additional controls -->
+                    <div class="flex justify-around mt-auto">
+                        <button id="likeBtn" class="text-gray-400 hover:text-red-400 transition-all relative">
+                            <i class="fas fa-heart"></i>
+                        </button>
+                        <button id="shareBtn" class="text-gray-400 hover:text-white transition-all relative">
+                            <i class="fas fa-share"></i>
+                            <!-- Share menu -->
+                            <div class="share-menu" id="shareMenu">
+                                <div class="share-item" data-share="copy">
+                                    <i class="fas fa-copy"></i>
+                                    <span>Copy Link</span>
+                                </div>
+                                <div class="share-item" data-share="facebook">
+                                    <i class="fab fa-facebook"></i>
+                                    <span>Facebook</span>
+                                </div>
+                                <div class="share-item" data-share="twitter">
+                                    <i class="fab fa-twitter"></i>
+                                    <span>Twitter</span>
+                                </div>
+                                <div class="share-item" data-share="whatsapp">
+                                    <i class="fab fa-whatsapp"></i>
+                                    <span>WhatsApp</span>
+                                </div>
+                            </div>
+                        </button>
+                        <button class="text-gray-400 hover:text-white transition-all">
+                            <i class="fas fa-list"></i>
+                        </button>
+                        <button class="text-gray-400 hover:text-white transition-all">
+                            <i class="fas fa-ellipsis-h"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+    
+    <script>
+        // Song data
+        const songs = [
+            { 
+                id: 1, 
+                title: "Midnight Dreams", 
+                artist: "Luna Echo", 
+                duration: "3:45", 
+                album: "https://picsum.photos/seed/album1/300/300",
+                audioUrl: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3",
+                liked: false
+            },
+            { 
+                id: 2, 
+                title: "Electric Pulse", 
+                artist: "Neon Waves", 
+                duration: "4:12", 
+                album: "https://picsum.photos/seed/album2/300/300",
+                audioUrl: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3",
+                liked: false
+            },
+            { 
+                id: 3, 
+                title: "Stellar Journey", 
+                artist: "Cosmic Drift", 
+                duration: "5:23", 
+                album: "https://picsum.photos/seed/album3/300/300",
+                audioUrl: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-3.mp3",
+                liked: false
+            },
+            { 
+                id: 4, 
+                title: "Ocean Breeze", 
+                artist: "Aqua Flow", 
+                duration: "3:56", 
+                album: "https://picsum.photos/seed/album4/300/300",
+                audioUrl: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-4.mp3",
+                liked: false
+            },
+            { 
+                id: 5, 
+                title: "Mountain High", 
+                artist: "Peak Sound", 
+                duration: "4:34", 
+                album: "https://picsum.photos/seed/album5/300/300",
+                audioUrl: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-5.mp3",
+                liked: false
+            },
+            { 
+                id: 6, 
+                title: "City Lights", 
+                artist: "Urban Beats", 
+                duration: "3:28", 
+                album: "https://picsum.photos/seed/album6/300/300",
+                audioUrl: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-6.mp3",
+                liked: false
+            }
+        ];
+        
+        // Player state
+        let currentSongIndex = 0;
+        let isPlaying = false;
+        let isShuffled = false;
+        let isRepeating = false;
+        let currentView = 'all';
+        let recentlyPlayed = [];
+        
+        // DOM elements
+        const audioPlayer = document.getElementById('audioPlayer');
+        const playPauseBtn = document.getElementById('playPauseBtn');
+        const prevBtn = document.getElementById('prevBtn');
+        const nextBtn = document.getElementById('nextBtn');
+        const shuffleBtn = document.getElementById('shuffleBtn');
+        const repeatBtn = document.getElementById('repeatBtn');
+        const progressBar = document.getElementById('progressBar');
+        const volumeSlider = document.getElementById('volumeSlider');
+        const songTitle = document.getElementById('songTitle');
+        const artistName = document.getElementById('artistName');
+        const albumArt = document.getElementById('albumArt');
+        const currentTimeEl = document.getElementById('currentTime');
+        const durationEl = document.getElementById('duration');
+        const songGrid = document.getElementById('songGrid');
+        const searchInput = document.getElementById('searchInput');
+        const visualizer = document.getElementById('visualizer');
+        const fileInput = document.getElementById('fileInput');
+        const uploadBtn = document.getElementById('uploadBtn');
+        const uploadHeaderBtn = document.getElementById('uploadHeaderBtn');
+        const uploadZone = document.getElementById('uploadZone');
+        const notification = document.getElementById('notification');
+        const likeBtn = document.getElementById('likeBtn');
+        const shareBtn = document.getElementById('shareBtn');
+        const shareMenu = document.getElementById('shareMenu');
+        const sectionTitle = document.getElementById('sectionTitle');
+        const likedCount = document.getElementById('likedCount');
+        const uploadProgress = document.getElementById('uploadProgress');
+        const uploadProgressBar = document.getElementById('uploadProgressBar');
+        
+        // Render songs based on current view
+        function renderSongs(songsToRender = null) {
+            let displaySongs = songsToRender;
+            
+            if (!songsToRender) {
+                switch(currentView) {
+                    case 'liked':
+                        displaySongs = songs.filter(song => song.liked);
+                        break;
+                    case 'recent':
+                        displaySongs = recentlyPlayed;
+                        break;
+                    default:
+                        displaySongs = songs;
+                }
+            }
+            
+            songGrid.innerHTML = '';
+            displaySongs.forEach((song, index) => {
+                const songCard = document.createElement('div');
+                songCard.className = `song-card glass rounded-xl p-4 cursor-pointer fade-in ${index === currentSongIndex ? 'active' : ''}`;
+                songCard.innerHTML = `
+                    <div class="relative group">
+                        <img src="${song.album}" alt="${song.title}" class="w-full h-48 object-cover rounded-lg mb-4">
+                        <div class="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity rounded-lg flex items-center justify-center">
+                            <button class="w-12 h-12 gradient-primary rounded-full flex items-center justify-center transform scale-0 group-hover:scale-100 transition-transform">
+                                <i class="fas fa-play text-white ml-1"></i>
+                            </button>
+                        </div>
+                        <button class="like-song absolute top-2 right-2 w-8 h-8 rounded-full bg-black/50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity" data-song-id="${song.id}">
+                            <i class="fas fa-heart ${song.liked ? 'text-red-400' : 'text-white'}"></i>
+                        </button>
+                    </div>
+                    <h4 class="font-semibold mb-1 truncate">${song.title}</h4>
+                    <p class="text-sm text-gray-400 mb-1 truncate">${song.artist}</p>
+                    <p class="text-xs text-gray-500">${song.duration}</p>
+                `;
+                
+                // Play song on card click
+                songCard.addEventListener('click', (e) => {
+                    if (!e.target.closest('.like-song')) {
+                        currentSongIndex = songs.indexOf(song);
+                        loadSong();
+                        if (!isPlaying) {
+                            togglePlayPause();
+                        }
+                        addToRecentlyPlayed(song);
+                    }
+                });
+                
+                // Like button
+                const likeBtn = songCard.querySelector('.like-song');
+                likeBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    toggleLike(song.id);
+                });
+                
+                songGrid.appendChild(songCard);
+            });
+            
+            updateLikedCount();
+        }
+        
+        // Load song
+        function loadSong() {
+            const song = songs[currentSongIndex];
+            songTitle.textContent = song.title;
+            artistName.textContent = song.artist;
+            albumArt.src = song.album;
+            audioPlayer.src = song.audioUrl;
+            
+            // Update like button
+            updateLikeButton(song.liked);
+            
+            // Reset UI
+            progressBar.value = 0;
+            currentTimeEl.textContent = '0:00';
+            durationEl.textContent = song.duration;
+            renderSongs();
+        }
+        
+        // Toggle play/pause
+        function togglePlayPause() {
+            if (isPlaying) {
+                audioPlayer.pause();
+                visualizer.style.display = 'none';
+            } else {
+                const playPromise = audioPlayer.play();
+                
+                if (playPromise !== undefined) {
+                    playPromise.then(_ => {
+                        visualizer.style.display = 'flex';
+                    })
+                    .catch(error => {
+                        console.error("Playback failed:", error);
+                        showNotification("Playback was prevented. Click play again.");
+                        isPlaying = false;
+                        updatePlayPauseButton();
+                    });
+                }
+            }
+            
+            isPlaying = !isPlaying;
+            updatePlayPauseButton();
+        }
+        
+        // Update play/pause button
+        function updatePlayPauseButton() {
+            const icon = playPauseBtn.querySelector('i');
+            if (isPlaying) {
+                icon.classList.remove('fa-play');
+                icon.classList.add('fa-pause');
+                icon.classList.remove('ml-1');
+            } else {
+                icon.classList.remove('fa-pause');
+                icon.classList.add('fa-play');
+                icon.classList.add('ml-1');
+            }
+        }
+        
+        // Previous song
+        function prevSong() {
+            currentSongIndex = (currentSongIndex - 1 + songs.length) % songs.length;
+            loadSong();
+            if (isPlaying) {
+                audioPlayer.play().catch(e => console.error("Playback failed:", e));
+            }
+            addToRecentlyPlayed(songs[currentSongIndex]);
+        }
+        
+        // Next song
+        function nextSong() {
+            if (isShuffled) {
+                currentSongIndex = Math.floor(Math.random() * songs.length);
+            } else {
+                currentSongIndex = (currentSongIndex + 1) % songs.length;
+            }
+            loadSong();
+            if (isPlaying) {
+                audioPlayer.play().catch(e => console.error("Playback failed:", e));
+            }
+            addToRecentlyPlayed(songs[currentSongIndex]);
+        }
+        
+        // Toggle shuffle
+        function toggleShuffle() {
+            isShuffled = !isShuffled;
+            shuffleBtn.classList.toggle('text-purple-400');
+            shuffleBtn.classList.toggle('text-gray-400');
+        }
+        
+        // Toggle repeat
+        function toggleRepeat() {
+            isRepeating = !isRepeating;
+            repeatBtn.classList.toggle('text-purple-400');
+            repeatBtn.classList.toggle('text-gray-400');
+            audioPlayer.loop = isRepeating;
+        }
+        
+        // Search songs
+        function searchSongs() {
+            const query = searchInput.value.toLowerCase();
+            const filteredSongs = songs.filter(song => 
+                song.title.toLowerCase().includes(query) || 
+                song.artist.toLowerCase().includes(query)
+            );
+            renderSongs(filteredSongs);
+        }
+        
+        // Format time
+        function formatTime(seconds) {
+            if (isNaN(seconds)) return '0:00';
+            
+            const mins = Math.floor(seconds / 60);
+            const secs = Math.floor(seconds % 60);
+            return `${mins}:${secs.toString().padStart(2, '0')}`;
+        }
+        
+        // Show notification
+        function showNotification(message) {
+            notification.textContent = message;
+            notification.classList.add('show');
+            
+            setTimeout(() => {
+                notification.classList.remove('show');
+            }, 3000);
+        }
+        
+        // Handle file upload
+        function handleFileUpload(files) {
+            let uploadedCount = 0;
+            const totalFiles = files.length;
+            
+            // Show progress bar
+            uploadProgress.style.display = 'block';
+            
+            Array.from(files).forEach((file, index) => {
+                if (!file.type.startsWith('audio/')) {
+                    showNotification(`${file.name} is not an audio file`);
+                    return;
+                }
+                
+                const audioUrl = URL.createObjectURL(file);
+                const fileName = file.name.replace(/\.[^/.]+$/, "");
+                
+                const newSong = {
+                    id: Date.now() + index,
+                    title: fileName,
+                    artist: "Local Artist",
+                    duration: "0:00",
+                    album: `https://picsum.photos/seed/uploaded${Date.now() + index}/300/300`,
+                    audioUrl: audioUrl,
+                    isLocal: true,
+                    liked: false
+                };
+                
+                songs.push(newSong);
+                uploadedCount++;
+                
+                // Update progress
+                const progress = ((index + 1) / totalFiles) * 100;
+                uploadProgressBar.style.width = `${progress}%`;
+                
+                // Get duration
+                const tempAudio = new Audio(audioUrl);
+                tempAudio.addEventListener('loadedmetadata', () => {
+                    newSong.duration = formatTime(tempAudio.duration);
+                    renderSongs();
+                });
+            });
+            
+            // Hide progress bar after a delay
+            setTimeout(() => {
+                uploadProgress.style.display = 'none';
+                uploadProgressBar.style.width = '0%';
+            }, 1000);
+            
+            renderSongs();
+            if (uploadedCount > 0) {
+                showNotification(`${uploadedCount} file(s) uploaded successfully`);
+            }
+        }
+        
+        // Toggle like
+        function toggleLike(songId) {
+            const song = songs.find(s => s.id === songId);
+            if (song) {
+                song.liked = !song.liked;
+                renderSongs();
+                
+                // Update main like button if it's the current song
+                if (songs[currentSongIndex].id === songId) {
+                    updateLikeButton(song.liked);
+                }
+                
+                showNotification(song.liked ? 'Added to liked songs' : 'Removed from liked songs');
+            }
+        }
+        
+        // Update like button
+        function updateLikeButton(liked) {
+            if (liked) {
+                likeBtn.classList.add('text-red-400');
+                likeBtn.classList.remove('text-gray-400');
+            } else {
+                likeBtn.classList.remove('text-red-400');
+                likeBtn.classList.add('text-gray-400');
+            }
+        }
+        
+        // Update liked count
+        function updateLikedCount() {
+            const count = songs.filter(song => song.liked).length;
+            likedCount.textContent = count;
+        }
+        
+        // Add to recently played
+        function addToRecentlyPlayed(song) {
+            // Remove if already exists
+            recentlyPlayed = recentlyPlayed.filter(s => s.id !== song.id);
+            // Add to beginning
+            recentlyPlayed.unshift(song);
+            // Keep only last 10
+            if (recentlyPlayed.length > 10) {
+                recentlyPlayed = recentlyPlayed.slice(0, 10);
+            }
+        }
+        
+        // Share functionality
+        function shareSong(platform) {
+            const song = songs[currentSongIndex];
+            const shareText = `Listening to "${song.title}" by ${song.artist} on MusicFlow`;
+            const shareUrl = window.location.href;
+            
+            switch(platform) {
+                case 'copy':
+                    navigator.clipboard.writeText(`${shareText} - ${shareUrl}`).then(() => {
+                        showNotification('Link copied to clipboard!');
+                    });
+                    break;
+                case 'facebook':
+                    window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}&quote=${encodeURIComponent(shareText)}`, '_blank');
+                    break;
+                case 'twitter':
+                    window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}&url=${encodeURIComponent(shareUrl)}`, '_blank');
+                    break;
+                case 'whatsapp':
+                    window.open(`https://wa.me/?text=${encodeURIComponent(shareText + ' - ' + shareUrl)}`, '_blank');
+                    break;
+            }
+        }
+        
+        // Event listeners
+        playPauseBtn.addEventListener('click', togglePlayPause);
+        prevBtn.addEventListener('click', prevSong);
+        nextBtn.addEventListener('click', nextSong);
+        shuffleBtn.addEventListener('click', toggleShuffle);
+        repeatBtn.addEventListener('click', toggleRepeat);
+        searchInput.addEventListener('input', searchSongs);
+        
+        // Like button
+        likeBtn.addEventListener('click', () => {
+            const song = songs[currentSongIndex];
+            toggleLike(song.id);
+            likeBtn.classList.add('heart-beat');
+            setTimeout(() => {
+                likeBtn.classList.remove('heart-beat');
+            }, 300);
+        });
+        
+        // Share button
+        shareBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            shareMenu.classList.toggle('show');
+        });
+        
+        // Share menu items
+        document.querySelectorAll('.share-item').forEach(item => {
+            item.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const platform = item.dataset.share;
+                shareSong(platform);
+                shareMenu.classList.remove('show');
+            });
+        });
+        
+        // Close share menu when clicking outside
+        document.addEventListener('click', () => {
+            shareMenu.classList.remove('show');
+        });
+        
+        // Navigation
+        document.querySelectorAll('.nav-item[data-view]').forEach(item => {
+            item.addEventListener('click', (e) => {
+                e.preventDefault();
+                currentView = item.dataset.view;
+                
+                // Update active state
+                document.querySelectorAll('.nav-item').forEach(nav => {
+                    nav.classList.remove('bg-white/10');
+                });
+                item.classList.add('bg-white/10');
+                
+                // Update section title
+                switch(currentView) {
+                    case 'liked':
+                        sectionTitle.textContent = 'Liked Songs';
+                        break;
+                    case 'recent':
+                        sectionTitle.textContent = 'Recently Played';
+                        break;
+                    default:
+                        sectionTitle.textContent = 'Your Music';
+                }
+                
+                renderSongs();
+            });
+        });
+        
+        // Upload buttons
+        uploadBtn.addEventListener('click', () => fileInput.click());
+        uploadHeaderBtn.addEventListener('click', () => fileInput.click());
+        uploadZone.addEventListener('click', () => fileInput.click());
+        
+        // File input
+        fileInput.addEventListener('change', (e) => {
+            handleFileUpload(e.target.files);
+        });
+        
+        // Drag and drop
+        uploadZone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadZone.classList.add('dragover');
+        });
+        
+        uploadZone.addEventListener('dragleave', () => {
+            uploadZone.classList.remove('dragover');
+        });
+        
+        uploadZone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadZone.classList.remove('dragover');
+            handleFileUpload(e.dataTransfer.files);
+        });
+        
+        // Audio events
+        audioPlayer.addEventListener('loadedmetadata', () => {
+            durationEl.textContent = formatTime(audioPlayer.duration);
+        });
+        
+        audioPlayer.addEventListener('timeupdate', () => {
+            if (audioPlayer.duration) {
+                const progress = (audioPlayer.currentTime / audioPlayer.duration) * 100;
+                progressBar.value = progress;
+                currentTimeEl.textContent = formatTime(audioPlayer.currentTime);
+            }
+        });
+        
+        audioPlayer.addEventListener('ended', () => {
+            if (!isRepeating) {
+                nextSong();
+            }
+        });
+        
+        audioPlayer.addEventListener('error', (e) => {
+            console.error("Audio error:", e);
+            showNotification("Error loading audio. Try another track.");
+            isPlaying = false;
+            updatePlayPauseButton();
+        });
+        
+        // Progress bar
+        progressBar.addEventListener('input', (e) => {
+            if (audioPlayer.duration) {
+                const time = (e.target.value / 100) * audioPlayer.duration;
+                audioPlayer.currentTime = time;
+            }
+        });
+        
+        // Volume
+        volumeSlider.addEventListener('input', (e) => {
+            audioPlayer.volume = e.target.value / 100;
+        });
+        
+        // Keyboard shortcuts
+        document.addEventListener('keydown', (e) => {
+            switch(e.code) {
+                case 'Space':
+                    e.preventDefault();
+                    togglePlayPause();
+                    break;
+                case 'ArrowLeft':
+                    prevSong();
+                    break;
+                case 'ArrowRight':
+                    nextSong();
+                    break;
+            }
+        });
+        
+        // Initialize
+        renderSongs();
+        loadSong();
+        audioPlayer.volume = 0.7;
+    </script>
+</body>
+</html>
